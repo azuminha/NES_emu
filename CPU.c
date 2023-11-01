@@ -6,9 +6,23 @@
 struct CPU{
     uint8_t register_a;
     uint8_t register_x;
+    uint8_t register_y;
     uint8_t status;
     uint16_t pc;
     uint8_t memory[0xFFFF];
+};
+
+enum adressing_mode{
+    Immediate = 1,
+    ZeroPage,
+    ZeroPage_X,
+    ZeroPage_Y,
+    Absolute,
+    Absolute_X,
+    Absolute_Y,
+    Indirect_X,
+    Indirect_Y,
+    NoneAddressing,
 };
 
 struct CPU create_cpu();
@@ -19,14 +33,16 @@ void load(struct CPU *cpu, uint8_t *program);
 void load_and_run(struct CPU *cpu, uint8_t *program);
 void reset_cpu(struct CPU *cpu);
 void update_zero_and_negative_flags(struct CPU *cpu, uint8_t result);
-void lda(struct CPU *cpu, uint8_t value);
+void lda(struct CPU *cpu, enum adressing_mode mode);
 void interpret(struct CPU *cpu);
 uint16_t mem_read_u16(struct CPU *cpu, uint16_t pos);
+uint16_t get_operand_address(struct CPU *cpu, enum adressing_mode mode);
 
 struct CPU create_cpu(){
     struct CPU cpu = {
         .register_a = 0,
         .register_x = 0,
+        .register_y = 0,
         .status = 0,
         .pc = 0
         };
@@ -79,6 +95,71 @@ void reset_cpu(struct CPU *cpu){
     (*cpu).pc = mem_read_u16(cpu, 0xfffc);
 }
 
+uint16_t get_operand_address(struct CPU *cpu, enum adressing_mode mode){
+    switch(mode){
+        case Immediate:
+            return cpu->pc;
+        case ZeroPage:
+            return (uint16_t)mem_read(cpu, cpu->pc);
+
+        case Absolute:
+            return mem_read_u16(cpu, cpu->pc);
+
+        case ZeroPage_X:
+            {
+            uint8_t pos = mem_read(cpu, cpu->pc);
+            uint16_t addr = (pos + cpu->register_x) % 0x100;
+            return addr;
+            }
+
+        case ZeroPage_Y:
+            {
+            uint8_t pos = mem_read(cpu, cpu->pc);
+            uint16_t addr = (pos + cpu->register_y) % 0x100;
+            return addr;
+            }
+
+        case Absolute_X:
+            {
+            uint16_t pos = mem_read_u16(cpu, cpu->pc);
+            uint16_t addr = (pos + (uint16_t)cpu->register_x) % 0x10000;
+            return addr;
+            }
+
+        case Absolute_Y:
+            {
+            uint16_t pos = mem_read_u16(cpu, cpu->pc);
+            uint16_t addr = (pos + (uint16_t)cpu->register_y) % 0x10000;
+            return addr;
+            }
+
+        case Indirect_X:
+            {
+            uint8_t pos = mem_read(cpu, cpu->pc);
+
+            uint8_t ptr = (pos + cpu->register_x) % 0x100;
+            uint8_t lo  = mem_read(cpu, (uint16_t)ptr);
+            uint8_t hi  = mem_read(cpu, (uint16_t)((ptr+1) % 0x100));
+            return ((uint16_t)hi << 8) | ((uint16_t)lo);
+            }
+        
+        case Indirect_Y:
+            {
+            uint8_t pos = mem_read(cpu, cpu->pc);
+
+            uint8_t lo = mem_read(cpu, (uint16_t)pos);
+            uint8_t hi = mem_read(cpu, (uint16_t)((pos+1) % 0x100));
+            uint16_t deref_pos = ((uint16_t)hi << 8) | (uint16_t)lo;
+            uint16_t deref = (deref_pos + (uint16_t)cpu->register_y) % 0x10000;
+            return deref;
+            }
+
+        case NoneAddressing:
+            exit(1);
+            break;
+    }
+}
+
 void update_zero_and_negative_flags(struct CPU *cpu, uint8_t result){
     if(result == 0)
         cpu->status |= 0b00000010;
@@ -91,9 +172,14 @@ void update_zero_and_negative_flags(struct CPU *cpu, uint8_t result){
         cpu->status &= 0b01111111;
 }
 
-void lda(struct CPU *cpu, uint8_t value){
+void lda(struct CPU *cpu, enum adressing_mode mode/*uint8_t value*/){
+    uint16_t addr = get_operand_address(cpu, mode);
+    uint8_t value = mem_read(cpu, addr);
+
     cpu->register_a = value;
     update_zero_and_negative_flags(cpu, cpu->register_a);
+    // cpu->register_a = value;
+    // update_zero_and_negative_flags(cpu, cpu->register_a);
 }
 
 void interpret(struct CPU *cpu){
@@ -111,11 +197,19 @@ void interpret(struct CPU *cpu){
 
                 break;
             case 0xA9:
-                uint8_t param = mem_read(cpu, cpu->pc);
+                lda(cpu, Immediate);
+                //uint8_t param = mem_read(cpu, cpu->pc);
                 cpu->pc += 1;
-                lda(cpu, param);
+                //lda(cpu, param);
 
                 break;
+            case 0xA5:
+                lda(cpu, ZeroPage);
+                cpu->pc += 1;
+                break;
+            case 0xAD:
+                lda(cpu, Absolute);
+                cpu->pc += 2;
             case 0xE8:
                 cpu->register_x++;
                 update_zero_and_negative_flags(cpu, cpu->register_x);
@@ -165,5 +259,13 @@ int main(){
     uint8_t program_5[] = {0xa9, 0xff, 0xaa, 0xe8, 0xe8, 0x00};
     load_and_run(&cpu_5, program_5);
     assert(cpu_5.register_x == 1);
+    printf("PASSED\n");
+
+    printf("test_lda_from_memory: ");
+    struct CPU cpu_6 = create_cpu();
+    mem_write(&cpu_6, 0x10, 0x55);
+    uint8_t program_6[] = {0xa5, 0x10, 0x00};
+    load_and_run(&cpu_6, program_6);
+    assert(cpu_6.register_a == 0x55);
     printf("PASSED\n");
 }
