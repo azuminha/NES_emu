@@ -9,12 +9,14 @@ enum _INSTRUCTION{
     BRK,
     STA,
     INX,
+    AND,
+    ASL,
 };
 
 struct _OPCODE{
     enum _INSTRUCTION instruction; 
     enum adressing_mode mode;
-    int bytes;
+    uint8_t bytes;
 }OPCODE[0xFF];
 
 void init_opcode_pc(){
@@ -41,6 +43,21 @@ void init_opcode_pc(){
     OPCODE[0x91] = (struct _OPCODE){STA, Indirect_Y, 2};
     /*INX*/   
     OPCODE[0xE8] = (struct _OPCODE){INX, NoneAddressing, 1}; 
+    /*AND*/
+    OPCODE[0x29] = (struct _OPCODE){AND, Immediate, 2};
+    OPCODE[0x25] = (struct _OPCODE){AND, ZeroPage, 2};
+    OPCODE[0x35] = (struct _OPCODE){AND, ZeroPage_X, 2};
+    OPCODE[0x2D] = (struct _OPCODE){AND, Absolute, 3};
+    OPCODE[0x3D] = (struct _OPCODE){AND, Absolute_X, 3};
+    OPCODE[0x39] = (struct _OPCODE){AND, Absolute_Y, 3};
+    OPCODE[0x21] = (struct _OPCODE){AND, Indirect_X, 2};
+    OPCODE[0x31] = (struct _OPCODE){AND, Indirect_Y, 2};    
+    /*ASL*/
+    OPCODE[0x0A] = (struct _OPCODE){ASL, NoneAddressing, 1};
+    OPCODE[0x06] = (struct _OPCODE){ASL, ZeroPage, 2};
+    OPCODE[0x16] = (struct _OPCODE){ASL, ZeroPage_X, 2};
+    OPCODE[0x0E] = (struct _OPCODE){ASL, Absolute, 3};
+    OPCODE[0x1E] = (struct _OPCODE){ASL, Absolute_X, 3};    
 }
 
 #endif

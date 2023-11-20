@@ -1,6 +1,15 @@
 #ifndef _CPU
 #define _CPU
 
+#define CARRY              0b00000001
+#define ZERO               0b00000010
+#define INTERRUPT_DISABLE  0b00000100
+#define DECIMAL_MODE       0b00001000
+#define BREAK              0b00010000
+#define BREAK2             0b00100000
+#define OVERFLOW           0b01000000
+#define NEGATIV            0b10000000
+
 struct CPU{
     uint8_t register_a;
     uint8_t register_x;
@@ -37,5 +46,10 @@ void lda(struct CPU *cpu, enum adressing_mode mode);
 void interpret(struct CPU *cpu);
 uint16_t mem_read_u16(struct CPU *cpu, uint16_t pos);
 uint16_t get_operand_address(struct CPU *cpu, enum adressing_mode mode);
+void and(struct CPU *cpu, enum adressing_mode mode);
+void enable_flag(struct CPU *cpu, uint8_t flag);
+void disable_flag(struct CPU *cpu, uint8_t flag);
+void asl(struct CPU *cpu, enum adressing_mode mode);
+
 
 #endif

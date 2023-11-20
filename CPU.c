@@ -129,9 +129,9 @@ uint16_t get_operand_address(struct CPU *cpu, enum adressing_mode mode){
 
 void update_zero_and_negative_flags(struct CPU *cpu, uint8_t result){
     if(result == 0)
-        cpu->status |= 0b00000010;
+        enable_flag(cpu, ZERO);//cpu->status |= 0b00000010;
     else
-        cpu->status &= 0b11111101;
+        disable_flag(cpu, ZERO);//cpu->status &= 0b11111101;
 
     if((result & 0b10000000) != 0)
         cpu->status |= 0b10000000;
@@ -152,6 +152,34 @@ void lda(struct CPU *cpu, enum adressing_mode mode/*uint8_t value*/){
 void sta(struct CPU *cpu, enum adressing_mode mode){
     uint16_t addr = get_operand_address(cpu, mode);
     mem_write(cpu, addr, cpu->register_a);
+}
+
+void and(struct CPU *cpu, enum adressing_mode mode){
+    uint16_t addr = get_operand_address(cpu, mode);
+    uint8_t value = mem_read(cpu, addr);
+
+    cpu->register_a &= value;
+    update_zero_and_negative_flags(cpu, cpu->register_a);
+}
+
+void enable_flag(struct CPU *cpu, uint8_t flag){
+    cpu->status |= flag;
+}
+
+void disable_flag(struct CPU *cpu, uint8_t flag){
+    cpu->status &= !flag;
+}
+
+void asl(struct CPU *cpu, enum adressing_mode mode){
+    uint16_t addr = get_operand_address(cpu, mode);
+    uint8_t value = mem_read(cpu, addr);
+
+    if(value >> 7 == 1) enable_flag(cpu, CARRY);
+    else disable_flag(cpu, CARRY);
+
+    value = value << 1;
+    mem_write(cpu, addr, value);
+    update_zero_and_negative_flags(cpu, value);
 }
 
 void interpret(struct CPU *cpu){
@@ -179,6 +207,21 @@ void interpret(struct CPU *cpu){
                 cpu->register_x++;
                 update_zero_and_negative_flags(cpu, cpu->register_x);
                 break;
+            case AND:
+                and(cpu, OPCODE[opcode].mode);
+                cpu->pc += OPCODE[opcode].bytes - 1;
+                break;
+            case ASL:
+                if(OPCODE[opcode].mode == NoneAddressing){
+                    uint8_t value = cpu->register_a;
+                    if(value >> 7 == 1) enable_flag(cpu, CARRY);
+                    else disable_flag(cpu, CARRY);
+                    cpu->register_a = value << 1;
+                    update_zero_and_negative_flags(cpu, cpu->register_a);
+                }else{
+                    asl(cpu, OPCODE[opcode].mode);
+                }
+                cpu->pc += OPCODE[opcode].bytes - 1;
             default:
                 break;
         }
