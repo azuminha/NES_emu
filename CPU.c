@@ -2,41 +2,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
-
-struct CPU{
-    uint8_t register_a;
-    uint8_t register_x;
-    uint8_t register_y;
-    uint8_t status;
-    uint16_t pc;
-    uint8_t memory[0xFFFF];
-};
-
-enum adressing_mode{
-    Immediate = 1,
-    ZeroPage,
-    ZeroPage_X,
-    ZeroPage_Y,
-    Absolute,
-    Absolute_X,
-    Absolute_Y,
-    Indirect_X,
-    Indirect_Y,
-    NoneAddressing,
-};
-
-struct CPU create_cpu();
-int array_size(uint8_t *program);
-uint8_t mem_read(struct CPU *cpu, uint16_t addr);
-void mem_write(struct CPU *cpu, uint16_t addr, uint8_t data);
-void load(struct CPU *cpu, uint8_t *program);
-void load_and_run(struct CPU *cpu, uint8_t *program);
-void reset_cpu(struct CPU *cpu);
-void update_zero_and_negative_flags(struct CPU *cpu, uint8_t result);
-void lda(struct CPU *cpu, enum adressing_mode mode);
-void interpret(struct CPU *cpu);
-uint16_t mem_read_u16(struct CPU *cpu, uint16_t pos);
-uint16_t get_operand_address(struct CPU *cpu, enum adressing_mode mode);
+#include "CPU.h"
+#include "opcode_pc.h"
 
 struct CPU create_cpu(){
     struct CPU cpu = {
@@ -182,38 +149,35 @@ void lda(struct CPU *cpu, enum adressing_mode mode/*uint8_t value*/){
     // update_zero_and_negative_flags(cpu, cpu->register_a);
 }
 
+void sta(struct CPU *cpu, enum adressing_mode mode){
+    uint16_t addr = get_operand_address(cpu, mode);
+    mem_write(cpu, addr, cpu->register_a);
+}
+
 void interpret(struct CPU *cpu){
 
     while(1){
         uint8_t opcode = mem_read(cpu, cpu->pc);
         cpu->pc += 1;
 
-        switch(opcode){
-            case 0x00:
+        switch(OPCODE[opcode].instruction){
+            case BRK:
                 return;
-            case 0xAA:
+            case TAX:
                 cpu->register_x = cpu->register_a;
                 update_zero_and_negative_flags(cpu, cpu->register_x);
-
                 break;
-            case 0xA9:
-                lda(cpu, Immediate);
-                //uint8_t param = mem_read(cpu, cpu->pc);
-                cpu->pc += 1;
-                //lda(cpu, param);
-
+            case LDA:
+                lda(cpu, OPCODE[opcode].mode);
+                cpu->pc += OPCODE[opcode].bytes - 1;
                 break;
-            case 0xA5:
-                lda(cpu, ZeroPage);
-                cpu->pc += 1;
+            case STA:
+                sta(cpu, OPCODE[opcode].mode);
+                cpu->pc += OPCODE[opcode].bytes - 1;
                 break;
-            case 0xAD:
-                lda(cpu, Absolute);
-                cpu->pc += 2;
-            case 0xE8:
+            case INX:
                 cpu->register_x++;
                 update_zero_and_negative_flags(cpu, cpu->register_x);
-
                 break;
             default:
                 break;
@@ -224,6 +188,8 @@ void interpret(struct CPU *cpu){
 }
 
 int main(){
+    init_opcode_pc();
+
     printf("test_0xa9_lda_immediate_load_data: ");
     struct CPU cpu_1 = create_cpu();
     uint8_t program_1[] = {0xa9, 0x05, 0x00};
