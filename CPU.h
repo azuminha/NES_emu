@@ -49,7 +49,9 @@ uint16_t get_operand_address(struct CPU *cpu, enum adressing_mode mode);
 void and(struct CPU *cpu, enum adressing_mode mode);
 void enable_flag(struct CPU *cpu, uint8_t flag);
 void disable_flag(struct CPU *cpu, uint8_t flag);
+int test_flag(struct CPU *cpu, uint8_t flag);
 void asl(struct CPU *cpu, enum adressing_mode mode);
+void branch(struct CPU *cpu, bool cond);
 
 
 #endif

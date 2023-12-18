@@ -11,6 +11,14 @@ enum _INSTRUCTION{
     INX,
     AND,
     ASL,
+    BCC,
+    BCS,
+    BEQ,
+    BMI,
+    BNE,
+    BPL,
+    BVC,
+    BVS,
 };
 
 struct _OPCODE{
@@ -57,7 +65,23 @@ void init_opcode_pc(){
     OPCODE[0x06] = (struct _OPCODE){ASL, ZeroPage, 2};
     OPCODE[0x16] = (struct _OPCODE){ASL, ZeroPage_X, 2};
     OPCODE[0x0E] = (struct _OPCODE){ASL, Absolute, 3};
-    OPCODE[0x1E] = (struct _OPCODE){ASL, Absolute_X, 3};    
+    OPCODE[0x1E] = (struct _OPCODE){ASL, Absolute_X, 3};   
+    /*BCC*/
+    OPCODE[0x90] = (struct _OPCODE){BCC, NoneAddressing, 2}; 
+    /*BCS*/
+    OPCODE[0xB0] = (struct _OPCODE){BCS, NoneAddressing, 2};
+    /*BEQ*/
+    OPCODE[0xF0] = (struct _OPCODE){BEQ, NoneAddressing, 2};
+    /*BMI*/
+    OPCODE[0x30] = (struct _OPCODE){BMI, NoneAddressing, 2};
+    /*BNE*/
+    OPCODE[0xD0] = (struct _OPCODE){BNE, NoneAddressing, 2};
+    /*BPL*/
+    OPCODE[0x10] = (struct _OPCODE){BPL, NoneAddressing, 2};
+    /*BVC*/
+    OPCODE[0x50] = (struct _OPCODE){BVC, NoneAddressing, 2};
+    /*BVS*/
+    OPCODE[0x70] = (struct _OPCODE){BVS, NoneAddressing, 2};
 }
 
 #endif

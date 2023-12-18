@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stdbool.h>
 #include "CPU.h"
 #include "opcode_pc.h"
 
@@ -170,6 +171,17 @@ void disable_flag(struct CPU *cpu, uint8_t flag){
     cpu->status &= !flag;
 }
 
+int test_flag(struct CPU *cpu, uint8_t flag){
+    return (flag & cpu->status) > 0;
+}
+
+void branch(struct CPU *cpu, bool cond){
+    if(cond){
+        int8_t jump = mem_read(cpu, cpu->pc);
+        cpu->pc = (cpu->pc + jump + 1) % 0x10000;
+    }
+}
+
 void asl(struct CPU *cpu, enum adressing_mode mode){
     uint16_t addr = get_operand_address(cpu, mode);
     uint8_t value = mem_read(cpu, addr);
@@ -222,6 +234,31 @@ void interpret(struct CPU *cpu){
                     asl(cpu, OPCODE[opcode].mode);
                 }
                 cpu->pc += OPCODE[opcode].bytes - 1;
+                break;
+            case BCC:
+                branch(cpu, !test_flag(cpu, CARRY));
+                break;
+            case BCS:
+                branch(cpu, test_flag(cpu, CARRY));
+                break;
+            case BEQ:
+                branch(cpu, test_flag(cpu, ZERO));
+                break;
+            case BMI:
+                branch(cpu, test_flag(cpu, NEGATIV));
+                break;
+            case BNE:
+                branch(cpu, !test_flag(cpu, ZERO));
+                break;
+            case BPL:
+                branch(cpu, !test_flag(cpu, NEGATIV));
+                break;
+            case BVC:
+                branch(cpu, !test_flag(cpu, OVERFLOW));
+                break;
+            case BVS:
+                branch(cpu, test_flag(cpu, OVERFLOW));
+                break;
             default:
                 break;
         }
