@@ -168,7 +168,7 @@ void enable_flag(struct CPU *cpu, uint8_t flag){
 }
 
 void disable_flag(struct CPU *cpu, uint8_t flag){
-    cpu->status &= !flag;
+    cpu->status &= ~flag;
 }
 
 int test_flag(struct CPU *cpu, uint8_t flag){
