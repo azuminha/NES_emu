@@ -194,6 +194,20 @@ void asl(struct CPU *cpu, enum adressing_mode mode){
     update_zero_and_negative_flags(cpu, value);
 }
 
+void compare(struct CPU *cpu, enum adressing_mode mode, uint8_t comp_val){
+    uint16_t addr = get_operand_address(cpu, mode);
+    uint8_t value = mem_read(cpu, addr);
+
+
+    if(comp_val >= value){
+        enable_flag(cpu, CARRY);
+    }else{
+        disable_flag(cpu, CARRY);
+    }
+
+    update_zero_and_negative_flags(cpu, (comp_val - value));
+}
+
 void interpret(struct CPU *cpu){
 
     while(1){
@@ -258,6 +272,27 @@ void interpret(struct CPU *cpu){
                 break;
             case BVS:
                 branch(cpu, test_flag(cpu, OVERFLOW));
+                break;
+			case CLC:
+                disable_flag(cpu, CARRY);
+                break;
+            case CLD:
+                disable_flag(cpu, DECIMAL_MODE);
+                break;
+            case CLI:
+                disable_flag(cpu, INTERRUPT_DISABLE);
+                break;
+            case CLV:
+                disable_flag(cpu, OVERFLOW);
+                break;
+            case CMP:
+                compare(cpu, OPCODE[opcode].mode, cpu->register_a);
+                break;
+            case CPX:
+                compare(cpu, OPCODE[opcode].mode, cpu->register_x);
+                break;
+            case CPY:
+                compare(cpu, OPCODE[opcode].mode, cpu->register_y);
                 break;
             default:
                 break;

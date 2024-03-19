@@ -1,5 +1,6 @@
 #ifndef _CPU
 #define _CPU
+#include <stdint.h>
 
 #define CARRY              0b00000001
 #define ZERO               0b00000010
@@ -52,6 +53,8 @@ void disable_flag(struct CPU *cpu, uint8_t flag);
 int test_flag(struct CPU *cpu, uint8_t flag);
 void asl(struct CPU *cpu, enum adressing_mode mode);
 void branch(struct CPU *cpu, bool cond);
+
+void compare(struct CPU *cpu, enum adressing_mode mode, uint8_t comp_val));
 
 
 #endif

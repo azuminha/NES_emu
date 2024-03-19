@@ -1,6 +1,7 @@
 #ifndef _OPCODEPC
 #define _OPCODEPC
 #include "CPU.h"
+#include <stdint.h>
 
 enum _INSTRUCTION{
     ADC = 1,
@@ -19,6 +20,13 @@ enum _INSTRUCTION{
     BPL,
     BVC,
     BVS,
+	CLC,
+    CLD,
+    CLI,
+    CLV,
+    CMP,
+    CPX,
+    CPY,
 };
 
 struct _OPCODE{
@@ -82,6 +90,31 @@ void init_opcode_pc(){
     OPCODE[0x50] = (struct _OPCODE){BVC, NoneAddressing, 2};
     /*BVS*/
     OPCODE[0x70] = (struct _OPCODE){BVS, NoneAddressing, 2};
+    /*CLC*/
+	OPCODE[0x18] = (struct _OPCODE){CLC, NoneAddressing, 2};
+    /*CLD*/
+    OPCODE[0xD8] = (struct _OPCODE){CLD, NoneAddressing, 2};
+    /*CLI*/
+    OPCODE[0x58] = (struct _OPCODE){CLI, NoneAddressing, 2};
+    /*CLV*/
+    OPCODE[0xB8] = (struct _OPCODE){CLV, NoneAddressing, 2};
+    /*CMP*/
+    OPCODE[0xC9] = (struct _OPCODE){CMP, Immediate, 2};
+    OPCODE[0xC5] = (struct _OPCODE){CMP, ZeroPage, 2};
+    OPCODE[0xD5] = (struct _OPCODE){CMP, ZeroPage_X, 2};
+    OPCODE[0xCD] = (struct _OPCODE){CMP, Absolute, 3};
+    OPCODE[0xDD] = (struct _OPCODE){CMP, Absolute_X, 3};
+    OPCODE[0xD9] = (struct _OPCODE){CMP, Absolute_Y, 3};
+    OPCODE[0xC1] = (struct _OPCODE){CMP, Indirect_X, 2};
+    OPCODE[0xD1] = (struct _OPCODE){CMP, Indirect_Y, 2};    
+    /*CPX*/
+    OPCODE[0xE0] = (struct _OPCODE){CPX, Immediate, 2};    
+    OPCODE[0xE4] = (struct _OPCODE){CPX, ZeroPage, 2};
+    OPCODE[0xEC] = (struct _OPCODE){CPX, Absolute, 3};    
+    /*CPY*/
+    OPCODE[0xC0] = (struct _OPCODE){CPY, Immediate, 2};
+    OPCODE[0xC4] = (struct _OPCODE){CPY, ZeroPage, 2};
+    OPCODE[0xCC] = (struct _OPCODE){CPY, Absolute, 3};   
 }
 
 #endif
