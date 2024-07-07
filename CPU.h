@@ -12,35 +12,39 @@
 #define NEGATIV            0b10000000
 
 struct CPU{
-    uint8_t register_a;
-    uint8_t register_x;
-    uint8_t register_y;
-    uint8_t status;
-    uint16_t pc;
-    uint8_t memory[0xFFFF];
+	uint8_t register_a;
+	uint8_t register_x;
+	uint8_t register_y;
+	uint8_t status;
+	uint16_t pc;
+	uint8_t sp; // stack pointer
+	uint8_t memory[0xFFFF];
 };
 
 enum adressing_mode{
-    Immediate = 1,
-    ZeroPage,
-    ZeroPage_X,
-    ZeroPage_Y,
-    Absolute,
-    Absolute_X,
-    Absolute_Y,
-    Indirect_X,
-    Indirect_Y,
-    NoneAddressing,
+	Immediate = 1,
+	ZeroPage,
+	ZeroPage_X,
+	ZeroPage_Y,
+	Absolute,
+	Absolute_X,
+	Absolute_Y,
+	Indirect_X,
+	Indirect_Y,
+	NoneAddressing,
 };
 
 
+uint8_t stack_pop(struct CPU *cpu);
+void stack_push(struct CPU *cpu, uint8_t data);
+void stack_push_u16(struct CPU *cpu, uint16_t data);
+uint16_t stack_pop_u16(struct CPU *cpu);
 
 struct CPU create_cpu();
-int array_size(uint8_t *program);
 uint8_t mem_read(struct CPU *cpu, uint16_t addr);
 void mem_write(struct CPU *cpu, uint16_t addr, uint8_t data);
-void load(struct CPU *cpu, uint8_t *program);
-void load_and_run(struct CPU *cpu, uint8_t *program);
+void load(struct CPU *cpu, uint8_t *program, int size_of_program);
+void load_and_run(struct CPU *cpu, uint8_t *program, int size_of_program);
 void reset_cpu(struct CPU *cpu);
 void update_zero_and_negative_flags(struct CPU *cpu, uint8_t result);
 void lda(struct CPU *cpu, enum adressing_mode mode);
@@ -54,7 +58,20 @@ int test_flag(struct CPU *cpu, uint8_t flag);
 void asl(struct CPU *cpu, enum adressing_mode mode);
 void branch(struct CPU *cpu, bool cond);
 
-void compare(struct CPU *cpu, enum adressing_mode mode, uint8_t comp_val));
+void dec(struct CPU *cpu, enum adressing_mode mode);
+void eor(struct CPU *cpu, enum adressing_mode mode);
+void inc(struct CPU *cpu, enum adressing_mode mode);
 
+void compare(struct CPU *cpu, enum adressing_mode mode, uint8_t comp_val);
+void ldx(struct CPU *cpu, enum adressing_mode mode);
+void ldy(struct CPU *cpu, enum adressing_mode mode);
+void lsr(struct CPU *cpu, enum adressing_mode mode);
+void ora(struct CPU *cpu, enum adressing_mode mode);
+void rol(struct CPU *cpu, enum adressing_mode mode);
+void ror(struct CPU *cpu, enum adressing_mode mode);
+void adc(struct CPU *cpu, enum adressing_mode mode);
+void stx(struct CPU *cpu, enum adressing_mode mode);
+void sty(struct CPU *cpu, enum adressing_mode mode);
+void bit(struct CPU *cpu, enum adressing_mode mode);
 
 #endif
