@@ -437,7 +437,7 @@ void sbc(struct CPU *cpu, enum adressing_mode mode){
 	uint16_t sum;
 	sum = (uint16_t)value + (uint16_t)ra;
 	if(test_flag(cpu, CARRY) == 1){
-		sum += 1;
+		sum += !1;
 	}else{
 	}
 
